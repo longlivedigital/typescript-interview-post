@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { HopefulAiService } from "./hopeful-ai.service";
+import { HopefulAiResponse, HopefulAiService } from "./hopeful-ai.service";
 import CompletionResponse from "./dto/completion-response.dto";
 import CompletionRequest from "./dto/completion-request.dto";
 
@@ -16,11 +16,16 @@ export class TextCompletionService {
     public async summarise(request: CompletionRequest): Promise<CompletionResponse> {
         const choices: string[] = [];
 
-        for (const template of promptTemplates) {
+        const choicesPromises = promptTemplates.map((template) => {
             const prompt = template(request.input);
-            const response = await this.hopefulAiService.makePostRequest(prompt, "summarise");
-            choices.push(response.text);
-        }
+            return this.hopefulAiService.makePostRequest(prompt, "summarise");
+        });
+
+        await Promise.allSettled(choicesPromises).then((results) => {
+            results
+                .filter((r) => r.status === "fulfilled")
+                .forEach((r) => choices.push((r as PromiseFulfilledResult<HopefulAiResponse>).value.text));
+        });
 
         return { choices };
     }

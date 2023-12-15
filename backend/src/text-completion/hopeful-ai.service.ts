@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import { Injectable } from "@nestjs/common";
 import { ActivityService } from "src/activity/activity.service";
 
-interface HopefulAiResponse {
+export interface HopefulAiResponse {
     text: string;
 }
 
